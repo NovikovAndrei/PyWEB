@@ -38,7 +38,9 @@
                         который он должен удалить из БД, удаляет его и возвращает перенаправление (redirect)
                         на обработчик wishlist, который показывает страницу wishlist-->
                         <td class="product-remove">
-                            <a href="#"><span class="ion-ios-close"></span></a>
+                            <a href="{% url 'store:remove_from_wishlist' item.product.id %}">
+                            <span class="ion-ios-close"></span>
+                            </a>
                         </td>
                         <td class="image-prod">
                             <a href="#">

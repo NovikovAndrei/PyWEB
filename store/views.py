@@ -98,3 +98,16 @@ class WishlistView(View):
             return render(request, "store/wishlist.html", {'wishlist': wishlist})
         return redirect('login:login')
 
+class WishlistRemoveView(View):
+    def get(self, request, id):
+        product = get_object_or_404(Product, id=id)
+        wishlist_item = Wishlist.objects.filter(user=request.user, product=product)
+        wishlist_item.delete()
+        return redirect('store:wishlist')
+
+class WishlistAddView(View):
+    def get(self, request, id):
+        product = get_object_or_404(Product, id=id)
+        wishlist_item = Wishlist(user=request.user, product=product)
+        wishlist_item.save()
+        return redirect('store:wishlist')
