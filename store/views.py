@@ -3,11 +3,11 @@ from django.views import View
 from django.http import HttpResponse
 from django.db.models import OuterRef, Subquery, F, ExpressionWrapper, DecimalField, Case, When
 from django.utils import timezone
-from .models import Product, Discount, Cart
+from .models import Product, Discount, Cart, Wishlist
 from rest_framework import viewsets, response
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CartSerializer
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
@@ -90,3 +90,11 @@ class ProductSingleView(View):
                                'rating': 5.0,
                                'url': data.image.url,
                                })
+
+class WishlistView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            wishlist = Wishlist.objects.filter(user=request.user)
+            return render(request, "store/wishlist.html", {'wishlist': wishlist})
+        return redirect('login:login')
+
