@@ -114,17 +114,17 @@ class WishlistViewSetTestCase(TestCase):
         self.assertEqual(response.data['message'], 'Product added to wishlist')
         self.assertEqual(Wishlist.objects.count(), 1)
 
-    # def test_update_wishlist_item(self):
-    #     wishlist_item = Wishlist.objects.create(user=self.user, product=self.product)
-    #     request = self.factory.put(f'/carts/{wishlist_item.id}/', {'product': 2})
-    #     request.user = self.user
-    #     view = WishlistViewSet.as_view({'put': 'update'})
-    #
-    #     response = view(request, pk=wishlist_item.id)
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(response.data['message'], 'Product change to wishlist')
-    #     wishlist_item.refresh_from_db()
-    #     self.assertEqual(wishlist_item.product, 2)
+    def test_update_wishlist_item(self):
+        wishlist_item = Wishlist.objects.create(user=self.user, product=self.product)
+        request = self.factory.put(f'/carts/{wishlist_item.id}/', {'product': 2})
+        request.user = self.user
+        view = WishlistViewSet.as_view({'put': 'update'})
+
+        response = view(request, pk=wishlist_item.id)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], 'Product change to wishlist')
+        wishlist_item.refresh_from_db()
+        self.assertEqual(wishlist_item.product.id, 2)
 
     def test_delete_wishlist_item(self):
         wishlist_item = Wishlist.objects.create(user=self.user, product=self.product)
