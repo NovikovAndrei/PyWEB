@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import Product, Discount, Cart, Wishlist
 from rest_framework import viewsets, response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import CartSerializer
+from .serializers import CartSerializer, WishlistSerializer
 from django.shortcuts import get_object_or_404, redirect
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -105,9 +105,88 @@ class WishlistRemoveView(View):
         wishlist_item.delete()
         return redirect('store:wishlist')
 
+
+
 class WishlistAddView(View):
     def get(self, request, id):
         product = get_object_or_404(Product, id=id)
-        wishlist_item = Wishlist(user=request.user, product=product)
+        wishlist_item = Wishlist.objects.filter(user=request.user, product=product)
+
+        if wishlist_item.exists():
+            # wishlist_item уже существует в базе данных Wishlist
+            return redirect('store:shop')
+        else:
+            # wishlist_item не существует в базе данных Wishlist
+            wishlist_item = Wishlist(user=request.user, product=product)
+            wishlist_item.save()
+            return redirect('store:shop')
+
+# class WishlistViewSet(viewsets.ModelViewSet):
+#     queryset = Wishlist.objects.all()
+#     serializer_class = WishlistSerializer
+#     permission_classes = (IsAuthenticated,)
+#     def get_queryset(self):
+#         return self.queryset.filter(user=self.request.user)
+#
+#     def create(self, request, *args, **kwargs):
+#         wishlist_items = self.get_queryset().filter(product__id=request.data.get('product'))
+#         if wishlist_items:
+#             wishlist_item = wishlist_items[0]
+#             if request.data.get('quantity'):
+#                 wishlist_item.quantity += int(request.data.get('quantity'))
+#             else:
+#                 wishlist_item.quantity += 1
+#         else:
+#             product = get_object_or_404(Product, id=request.data.get('product'))
+#             if request.data.get('quantity'):
+#                 wishlist_item = Wishlist(user=request.user, product=product, quantity=request.data.get('quantity'))
+#             else:
+#                 wishlist_item = Wishlist(user=request.user, product=product)
+#         wishlist_item.save()
+#         return response.Response({'message': 'Product added to wishlist'}, status=201)
+#
+#     def update(self, request, *args, **kwargs):
+#         wishlist_item = get_object_or_404(Cart, id=kwargs['pk'])
+#         if request.data.get('quantity'):
+#             wishlist_item.quantity = request.data['quantity']
+#         if request.data.get('product'):
+#             product = get_object_or_404(Product, id=request.data['product'])
+#             wishlist_item.product = product
+#         wishlist_item.save()
+#         return response.Response({'message': 'Product change to wishlist'}, status=201)
+#
+#     def destroy(self, request, *args, **kwargs):
+#         wishlist_item = self.get_queryset().get(id=kwargs['pk'])
+#         wishlist_item.delete()
+#         return response.Response({'message': 'Product delete from wishlist'}, status=201)
+
+class WishlistViewSet(viewsets.ModelViewSet):
+    queryset = Wishlist.objects.all()
+    serializer_class = WishlistSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        wishlist_items = self.get_queryset().filter(product__id=request.data.get('product'))
+        if wishlist_items:
+            wishlist_item = wishlist_items[0]
+        else:
+            product = get_object_or_404(Product, id=request.data.get('product'))
+            wishlist_item = Wishlist(user=request.user, product=product)
         wishlist_item.save()
-        return redirect('store:wishlist')
+        return response.Response({'message': 'Product added to wishlist'}, status=201)
+
+    def update(self, request, *args, **kwargs):
+        wishlist_item = get_object_or_404(Cart, id=kwargs['pk'])
+        if request.data.get('product'):
+            product = get_object_or_404(Product, id=request.data['product'])
+            wishlist_item.product = product
+        wishlist_item.save()
+        return response.Response({'message': 'Product change to wishlist'}, status=201)
+
+    def destroy(self, request, *args, **kwargs):
+        wishlist_item = self.get_queryset().get(id=kwargs['pk'])
+        wishlist_item.delete()
+        return response.Response({'message': 'Product delete from wishlist'}, status=201)
