@@ -127,15 +127,17 @@ class WishlistView(View):
 
     def post(self, request, id):
         # Логика для добавления товара в список желаний
-        product = get_object_or_404(Product, id=id)
-        wishlist_item = Wishlist.objects.filter(user=request.user, product=product)
+        if request.user.is_authenticated:
+            product = get_object_or_404(Product, id=id)
+            wishlist_item = Wishlist.objects.filter(user=request.user, product=product)
 
-        if wishlist_item.exists():
-            return redirect('store:shop')
-        else:
-            wishlist_item = Wishlist(user=request.user, product=product)
-            wishlist_item.save()
-            return redirect('store:shop')
+            if wishlist_item.exists():
+                return redirect('store:shop')
+            else:
+                wishlist_item = Wishlist(user=request.user, product=product)
+                wishlist_item.save()
+                return redirect('store:shop')
+        return redirect('login:login')
 
     def delete(self, request, id):
         # Логика для удаления товара из списка желаний
